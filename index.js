@@ -1,40 +1,77 @@
-const express = require('express');
-const app = express();
+const express = require('express')
+const app = express()
 app.use(express.json())
-
 const PORT = 3000
 
-const books = [
-  { id: 1, title: 'Абай жолы', author: 'М. Әуезов', year: 1942 },
-  { id: 2, title: 'Менің атым Қожа', author: 'Б. Соқпақбаев', year: 1957 }
-];
+const destinations = [
+    { id: 1, name: 'Париж', country: 'Франция', description: 'Жарықтар қаласы', price: 1200 },
+    { id: 2, name: 'Токио', country: 'Жапония', description: 'Күншығыс елі', price: 1500 }
+]
 
-app.get('/api/books', (req, res) => {
-  res.json(books);
-});
+app.get('/destinations', (req, res) => {
+    res.json(destinations)
+})
 
+app.get('/destinations/:id', (req, res) => {
+    const id = req.params.id
+    const destination = destinations.find(d => d.id == parseInt(id))
+    if (!destination) {
+        res.status(404).json({ message: 'Бул бағыт табылмады!' })
+    }
+    res.json(destination)
+})
 
+app.post('/destinations',(req, res) => {
+    const { name, country, description, price } = req.body
 
-app.post('/api/books', (req, res) => {
-  const { title, author, year } = req.body;
+    if (!name || !country || !description || !price) {
+        return res.status(400).json({ message: 'Барлық ақпарат толтырылмаған!' })
+    }
 
-  if (!title || !author) {
-    return res.status(400).json({ error: 'Title немесе Author бос болмауы тиіс' });
-  }
+    const newDestinations = {
+        id: destinations.length + 1,
+        name: name,
+        country: country,
+        description: description,
+        price: price
+    }
 
-  const newBook = {
-    id: books.length + 1,
-    title: title,
-    author: author,
-    year: year
-  };
+    destinations.push(newDestinations)
+    res.json(newDestinations)
+})
 
-  books.push(newBook);
+app.put('/destinations/:id', (req, res) => {
+    const id = req.params.id
+    const destination = destinations.find(d => d.id == parseInt(id))
 
-  res.status(201).json(newBook);
-});
+    if (!destination) {
+        res.status(404).json({ message: 'Бул бағыт табылмады!' })
+        
+    }
+    const { name, country, description, price } = req.body
+    destination.name = name
+    destination.country = country
+    destination.description = description
+    destination.price = price
+
+    res.json(destination)
+
+})
+
+app.delete('/destinations/:id', (req, res) => {
+    const id = req.params.id
+
+    const index = destinations.findIndex(d => d.id == parseInt(id))
+    if (index === -1) {
+        return res.status(404).json({ message: 'Бул бағыт табылмады!'})
+    }
+
+    destinations.splice(index,1)
+
+    return res.json({message: 'Бағыт өшірілді!'})
+})
 
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+    console.log(`Server is running on port ${PORT}`)
+})
